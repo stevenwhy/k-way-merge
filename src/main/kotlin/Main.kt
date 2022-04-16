@@ -11,6 +11,48 @@ fun main() {
         print("${result.value} ")
         result = result.next
     }
+    println("")
+    println("Find kth smallest number among all: ${findKthSmallestAmongSortedLists(
+        mutableListOf(listOf(2,6,8),listOf(3,6,7),listOf(1,3,4)), 
+        5)
+    }")
+    println("Find kth smallest number among all: ${findKthSmallestAmongSortedLists(
+        mutableListOf(listOf(5,8,9),listOf(1,7)),
+        3)
+    }")
+}
+/*
+    Given ‘M’ sorted arrays, find the K’th smallest number among all the arrays.
+    Input: L1=[2, 6, 8], L2=[3, 6, 7], L3=[1, 3, 4], K=5
+    Output: 4
+
+    Here we can keep a minHeap like below
+    Pop the elements from minHeap until we have popped our kth element
+ */
+fun findKthSmallestAmongSortedLists(list: MutableList<List<Int>>, k: Int): Int {
+    // Triple will be ( value, index of list it was in, index within the list )
+    //val minHeap = PriorityQueue<Triple<Int,Int,Int>>(compareBy { it.first })
+    // Pair is 2D coordinate of the number
+    val minHeap = PriorityQueue<Pair<Int,Int>>(compareBy { list[it.first][it.second] })
+    var count = 0
+    while(count < list.size) {
+        minHeap.add(Pair(count, 0))
+        count++
+    }
+    var popCount = 0
+    var listIndex = -1
+    var index = -1
+    while(popCount < k) {
+        if(index >= 0 && index < list[listIndex].size) {
+            minHeap.add(Pair(listIndex, index))
+        }
+        // now we want to pop from minHeap, increment popCount
+        val current = minHeap.poll()
+        listIndex = current.first
+        index = current.second + 1
+        popCount++
+    }
+    return list[listIndex][index - 1]
 }
 
 /*
@@ -23,6 +65,7 @@ fun main() {
     Then add 1 from the list it came from to the minHeap.
       If the list is empty, pop from minHeap and keep going
     Repeat until done
+    O(Nlogk) k is number of sorted lists. If we did brute force combine all lists then sort it is NlogN
  */
 fun mergeSortedLists(list: MutableList<ListNode?>): ListNode? {
     // minHeap will store the ListNode and the index of the list it was in
@@ -32,7 +75,6 @@ fun mergeSortedLists(list: MutableList<ListNode?>): ListNode? {
     var count = 0
     while(count < list.size) {
         val firstNode = list[count]
-        println("adding $firstNode with index $count to minHeap")
         minHeap.add(Pair(firstNode,count))
         list[count] = firstNode?.next
         count++
@@ -40,7 +82,6 @@ fun mergeSortedLists(list: MutableList<ListNode?>): ListNode? {
     // get root
     var (result, index) = minHeap.poll()
     var currentNode = result
-    println("Min is $result with index $index")
     while(minHeap.isNotEmpty()) {
         if(list[index] != null) {
             // add to minHeap
